@@ -4,20 +4,22 @@
 
 extern crate alloc;
 
-use core::{ffi::c_void, mem::ManuallyDrop};
+use core::mem::ManuallyDrop;
 use psp::{
     Align16, BUF_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
-    sys::{self, DisplayPixelFormat, GuPrimitive, GuState, TexturePixelFormat, VertexType},
+    sys::{self, DisplayPixelFormat, GuPrimitive, GuState, TexturePixelFormat},
     vram_alloc::get_vram_allocator,
 };
 
 pub mod buffer;
 pub mod color;
+pub mod index;
 pub mod rect;
 pub mod vertex;
 
-use buffer::{IndexBuffer, TypedBuffer, UntypedBuffer};
+use buffer::{Buffer, TransientBuffer};
 use color::Color32;
+use index::IndexItem;
 use rect::Rect;
 use vertex::Vertex;
 
@@ -127,41 +129,45 @@ impl<'gfx> Frame<'gfx> {
         }
     }
 
-    /// Get memory from sceGuGetMemory as a typed buffer
+    /// Get memory from sceGuGetMemory as a [`TransientBuffer`]
     ///
-    /// Safe wrapper for [`TypedBuffer::get_memory`]
-    pub fn get_memory_typed<'frame, T>(&'frame self, data: &[T]) -> TypedBuffer<'frame, T> {
-        unsafe { TypedBuffer::get_memory(data) }
+    /// (Safe alternative to [`UntypedBuffer::get_memory_static`])
+    pub fn get_memory<'frame, T>(&'frame self, data: &[T]) -> TransientBuffer<'frame, T> {
+        unsafe { TransientBuffer::get_memory_static(data) }
     }
 
-    /// Get memory from sceGuGetMemory as an untyped buffer
-    ///
-    /// Safe wrapper for [`UntypedBuffer::get_memory`]
-    pub fn get_memory_untyped<'frame, T>(&'frame self, data: &[T]) -> UntypedBuffer<'frame> {
-        unsafe { UntypedBuffer::get_memory(data) }
-    }
-
-    pub fn draw_array<V: Vertex + Default>(
-        &self,
-        vertex: &TypedBuffer<V>,
-        index: Option<&dyn IndexBuffer>,
-        primitive: GuPrimitive,
-    ) {
+    pub fn draw_array<V: Buffer>(&self, primitive: GuPrimitive, vertex_buf: &V)
+    where
+        V::Item: Vertex,
+    {
         unsafe {
             sys::sceGuDrawArray(
                 primitive,
-                V::vtype()
-                    | index
-                        .map(IndexBuffer::idx_vtype)
-                        .unwrap_or(VertexType::empty()),
-                index
-                    .map(IndexBuffer::idx_len)
-                    .unwrap_or(vertex.len() as i32),
-                match index {
-                    Some(index_buf) => index_buf.idx_buffer().to_ptr(),
-                    None => core::ptr::null::<c_void>(),
-                },
-                vertex.to_ptr(),
+                V::Item::vtype(),
+                vertex_buf.len() as i32,
+                core::ptr::null(),
+                vertex_buf.as_ptr(),
+            );
+        }
+    }
+
+    pub fn draw_array_indexed<V: Buffer, I: Buffer>(
+        &self,
+        primitive: GuPrimitive,
+        vertex_buf: &V,
+        index_buf: &I,
+    ) where
+        V::Item: Vertex,
+        I::Item: IndexItem + Default,
+    {
+        // XXX: are indices pointing oob ub?
+        unsafe {
+            sys::sceGuDrawArray(
+                primitive,
+                V::Item::vtype() | I::Item::vtype(),
+                index_buf.len() as i32,
+                index_buf.as_ptr(),
+                vertex_buf.as_ptr(),
             );
         }
     }
