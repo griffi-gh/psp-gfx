@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 psp.workspace = true
 bytemuck = { version = "1.23", features = ["derive", "extern_crate_alloc"] }
+paste = "1.0"

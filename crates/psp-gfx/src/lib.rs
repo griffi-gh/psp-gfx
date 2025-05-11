@@ -22,7 +22,11 @@ pub mod vertex;
 
 use buffer::{IndexBuffer, TypedBuffer, UntypedBuffer};
 use color::Color;
+use rect::Rect;
 use vertex::Vertex;
+
+// Re-export
+pub use paste;
 
 pub static mut BUFFER: Align16<[u32; 0x40000]> = Align16([0; 0x40000]);
 
@@ -121,6 +125,12 @@ impl<'gfx> Frame<'gfx> {
         }
     }
 
+    pub fn set_scissor(&self, scissor: Rect) {
+        unsafe {
+            sys::sceGuScissor(scissor.x, scissor.y, scissor.w, scissor.h);
+        }
+    }
+
     pub fn new_typed_buffer<'frame, T>(&'frame self, data: &[T]) -> TypedBuffer<'frame, T> {
         unsafe { TypedBuffer::new(data) }
     }
@@ -129,16 +139,16 @@ impl<'gfx> Frame<'gfx> {
         unsafe { UntypedBuffer::new(data) }
     }
 
-    pub fn draw_array(
+    pub fn draw_array<V: Vertex + Default>(
         &self,
-        vertex: &TypedBuffer<Vertex>,
+        vertex: &TypedBuffer<V>,
         index: Option<&dyn IndexBuffer>,
         primitive: GuPrimitive,
     ) {
         unsafe {
             sys::sceGuDrawArray(
                 primitive,
-                Vertex::vtype()
+                V::vtype()
                     | index
                         .map(IndexBuffer::idx_vtype)
                         .unwrap_or(VertexType::empty()),
