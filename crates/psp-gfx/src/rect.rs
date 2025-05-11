@@ -8,7 +8,7 @@ pub struct Rect {
 }
 
 impl Rect {
-    pub fn to_vertex_pair(&self) -> [Vertex; 2] {
+    pub fn to_sprites_vertices(&self) -> [Vertex; 2] {
         [
             Vertex {
                 x: self.x as i16,

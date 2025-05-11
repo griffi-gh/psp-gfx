@@ -38,7 +38,7 @@ fn psp_main() -> ! {
                 w: SCREEN_WIDTH as i32,
                 h: FLAG_STRIP_HEIGHT as i32,
             };
-            let vtx_buf = unsafe { TypedBuffer::new(&rect.to_vertex_pair()) };
+            let vtx_buf = unsafe { TypedBuffer::new(&rect.to_sprites_vertices()) };
 
             frame.set_color(Color::from_rgb(color));
             frame.draw_array(&vtx_buf, None, GuPrimitive::Sprites);
