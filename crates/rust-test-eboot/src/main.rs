@@ -37,6 +37,7 @@ fn psp_main() -> ! {
         let frame = gfx.start_frame();
         frame.clear_color_depth(Color32::BLACK, 0);
 
+        let mut vertices: [Vertex; FLAG_COLORS.len() * 2] = Default::default();
         for (idx, color) in FLAG_COLORS.iter().copied().enumerate() {
             let rect = Rect {
                 x: 0,
@@ -44,25 +45,26 @@ fn psp_main() -> ! {
                 w: SCREEN_WIDTH as i32,
                 h: FLAG_STRIP_HEIGHT as i32,
             };
-            frame.draw_array(
-                &frame.get_memory_typed(&[
-                    Vertex {
-                        x: rect.x as _,
-                        y: rect.y as _,
-                        color: Color32::from_rgb(color),
-                        ..Default::default()
-                    },
-                    Vertex {
-                        x: (rect.x + rect.w) as _,
-                        y: (rect.y + rect.h) as _,
-                        color: Color32::from_rgb(color),
-                        ..Default::default()
-                    },
-                ]),
-                None,
-                GuPrimitive::Sprites,
-            );
+            let base_idx = idx << 1;
+            vertices[base_idx] = Vertex {
+                x: rect.x as _,
+                y: rect.y as _,
+                color: Color32::from_rgb(color),
+                ..Default::default()
+            };
+            vertices[base_idx + 1] = Vertex {
+                x: (rect.x + rect.w) as _,
+                y: (rect.y + rect.h) as _,
+                color: Color32::from_rgb(color),
+                ..Default::default()
+            };
         }
+
+        frame.draw_array(
+            &frame.get_memory_typed(&vertices),
+            None,
+            GuPrimitive::Sprites,
+        );
 
         frame.finish();
     }
