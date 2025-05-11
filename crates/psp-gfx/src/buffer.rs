@@ -13,6 +13,10 @@ pub struct UntypedBuffer<'frame> {
 }
 
 impl<'frame> UntypedBuffer<'frame> {
+    /// Safety:
+    /// - Must not outlive current frame.
+    ///
+    /// Use `frame.new_untyped_buffer` for a safe alternative
     pub unsafe fn new<T>(data: &[T]) -> Self {
         let len = data.len();
         let len_bytes = core::mem::size_of_val(data);
@@ -57,6 +61,10 @@ impl<'frame, T> DerefMut for TypedBuffer<'frame, T> {
 }
 
 impl<'frame, T> TypedBuffer<'frame, T> {
+    /// Safety:
+    /// - Must not outlive current frame.
+    ///
+    /// Use `frame.new_typed_buffer` for a safe alternative
     pub unsafe fn new(data: &[T]) -> Self {
         Self {
             inner: unsafe { UntypedBuffer::new(data) },
@@ -64,6 +72,7 @@ impl<'frame, T> TypedBuffer<'frame, T> {
         }
     }
 
+    /// Returns amount of items in a buffer
     pub fn len(&self) -> usize {
         self.inner.size_bytes() / size_of::<T>()
     }
@@ -72,10 +81,12 @@ impl<'frame, T> TypedBuffer<'frame, T> {
         self.len() == 0
     }
 
+    /// Get a reference to the underlying [`UntypedBuffer`]
     pub fn as_untyped(&self) -> &UntypedBuffer {
         &self.inner
     }
 
+    /// Converts [`TypedBuffer`] into [`UntypedBuffer`]
     pub fn into_untyped(self) -> UntypedBuffer<'frame> {
         self.inner
     }
@@ -96,9 +107,13 @@ impl<'frame> From<UntypedBuffer<'frame>> for TypedBuffer<'frame, u8> {
     }
 }
 
+/// Marker trait used on [`TypedBuffers`] that can be used as Index Buffers for drawing
 pub trait IndexBuffer: SealedTrait {
+    /// internal implementeation detail. do not rely on this
     fn idx_vtype(&self) -> VertexType;
+    /// internal implementeation detail. do not rely on this
     fn idx_len(&self) -> i32;
+    /// internal implementeation detail. do not rely on this
     fn idx_buffer(&self) -> &UntypedBuffer;
 }
 
