@@ -1,35 +1,38 @@
-use core::ffi::c_void;
+#![no_std]
+#![allow(static_mut_refs)]
+#![allow(clippy::missing_safety_doc)]
 
-use color::Color;
+extern crate alloc;
+
+use core::{ffi::c_void, mem::ManuallyDrop};
 use psp::{
     Align16, BUF_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
     sys::{self, DisplayPixelFormat, GuPrimitive, GuState, TexturePixelFormat, VertexType},
     vram_alloc::get_vram_allocator,
 };
-use rect::Rect;
 
+pub(crate) mod private {
+    pub trait SealedTrait {}
+}
+
+pub mod buffer;
 pub mod color;
 pub mod rect;
+pub mod vertex;
+
+use buffer::{IndexBuffer, TypedBuffer, UntypedBuffer};
+use color::Color;
+use vertex::Vertex;
 
 pub static mut BUFFER: Align16<[u32; 0x40000]> = Align16([0; 0x40000]);
 
-#[repr(C, align(32))]
-#[derive(Copy, Clone, Default)]
-pub struct Vertex {
-    pub u: u16,
-    pub v: u16,
-    pub x: i16,
-    pub y: i16,
-    pub z: i16,
-}
-
-pub struct GraphicsManager {
+pub struct PspGfx {
     fbp0: *mut u8,
     fbp1: *mut u8,
     zbp: *mut u8,
 }
 
-impl GraphicsManager {
+impl PspGfx {
     pub fn init() -> Self {
         let allocator = get_vram_allocator().unwrap();
         let fbp0 = allocator
@@ -71,26 +74,23 @@ impl GraphicsManager {
         Self { fbp0, fbp1, zbp }
     }
 
-    pub fn clear_color_depth(&mut self, color: Color, depth: u32) {
-        unsafe {
-            sys::sceGuClearColor(color.0);
-            sys::sceGuClearDepth(depth);
-            sys::sceGuClear(
-                sys::ClearBuffer::COLOR_BUFFER_BIT | sys::ClearBuffer::DEPTH_BUFFER_BIT,
-            );
-        }
-    }
-
-    pub fn begin_frame(&mut self) {
+    pub fn start_frame<'a>(&'a self) -> Frame<'a> {
         unsafe {
             sys::sceGuStart(
                 psp::sys::GuContextType::Direct,
                 BUFFER.0.as_mut_ptr() as *mut _,
             );
         }
+        Frame { _gfx: self }
     }
+}
 
-    pub fn end_frame(&mut self) {
+pub struct Frame<'a> {
+    _gfx: &'a PspGfx,
+}
+
+impl<'frame> Frame<'frame> {
+    fn finish_non_consuming(&self) {
         unsafe {
             sys::sceGuFinish();
             sys::sceGuSync(sys::GuSyncMode::Finish, sys::GuSyncBehavior::Wait);
@@ -99,44 +99,64 @@ impl GraphicsManager {
         }
     }
 
-    pub fn draw(&mut self, vtx: &[Vertex], color: Color, primitive: GuPrimitive) {
-        let len = vtx.len();
-        let len_bytes = core::mem::size_of_val(vtx);
-        assert!(len_bytes < i32::MAX as usize);
+    pub fn finish(self) {
+        self.finish_non_consuming();
+        // XXX: this could *potentially* leak
+        let _ = ManuallyDrop::new(self);
+    }
 
-        let buffer = unsafe { sys::sceGuGetMemory(len_bytes as i32) };
+    pub fn clear_color_depth(&self, color: Color, depth: u32) {
         unsafe {
-            core::ptr::copy_nonoverlapping(vtx.as_ptr(), buffer as *mut Vertex, len);
-        }
-
-        unsafe {
-            sys::sceGuColor(color.0);
-            sys::sceGuDrawArray(
-                primitive,
-                VertexType::TEXTURE_16BIT | VertexType::VERTEX_16BIT | VertexType::TRANSFORM_2D,
-                vtx.len() as i32,
-                core::ptr::null::<c_void>(),
-                buffer,
+            sys::sceGuClearColor(color.as_abgr());
+            sys::sceGuClearDepth(depth);
+            sys::sceGuClear(
+                sys::ClearBuffer::COLOR_BUFFER_BIT | sys::ClearBuffer::DEPTH_BUFFER_BIT,
             );
         }
     }
 
-    pub fn fill_rect(&mut self, rect: Rect, color: Color) {
-        self.draw(
-            &[
-                Vertex {
-                    x: rect.x as i16,
-                    y: rect.y as i16,
-                    ..Default::default()
+    pub fn set_color(&self, color: Color) {
+        unsafe {
+            sys::sceGuColor(color.as_abgr());
+        }
+    }
+
+    // pub fn new_typed_buffer<'s: 'frame, T>(&'s self, data: &[T]) -> TypedBuffer<'s, T> {
+    //     unsafe { TypedBuffer::new(data) }
+    // }
+
+    // pub fn new_untyped_buffer<T>(&self, data: &[T]) -> UntypedBuffer<'frame> {
+    //     unsafe { UntypedBuffer::new(data) }
+    // }
+
+    pub fn draw_array(
+        &self,
+        vertex: &TypedBuffer<Vertex>,
+        index: Option<&dyn IndexBuffer>,
+        primitive: GuPrimitive,
+    ) {
+        unsafe {
+            sys::sceGuDrawArray(
+                primitive,
+                Vertex::vtype()
+                    | index
+                        .map(IndexBuffer::idx_vtype)
+                        .unwrap_or(VertexType::empty()),
+                index
+                    .map(IndexBuffer::idx_len)
+                    .unwrap_or(vertex.len() as i32),
+                match index {
+                    Some(index_buf) => index_buf.idx_buffer().to_ptr(),
+                    None => core::ptr::null::<c_void>(),
                 },
-                Vertex {
-                    x: (rect.x + rect.w) as i16,
-                    y: (rect.y + rect.h) as i16,
-                    ..Default::default()
-                },
-            ],
-            color,
-            GuPrimitive::Sprites,
-        );
+                vertex.to_ptr(),
+            );
+        }
+    }
+}
+
+impl<'a> Drop for Frame<'a> {
+    fn drop(&mut self) {
+        self.finish_non_consuming();
     }
 }

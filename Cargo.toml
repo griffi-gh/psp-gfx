@@ -1,11 +1,11 @@
-[package]
-name = "rust-test-eboot"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+default-members = ["crates/rust-test-eboot"]
 
-[dependencies]
+[workspace.dependencies]
 psp = "0.3.12"
-bytemuck = { version = "1.23", features = ["derive", "extern_crate_alloc"] }
+psp-gfx = { path = "./crates/psp-gfx" }
 
 [profile.dev.package.psp]
 opt-level = 3

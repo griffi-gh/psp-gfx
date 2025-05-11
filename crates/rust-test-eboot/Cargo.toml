@@ -1,0 +1,8 @@
+[package]
+name = "rust-test-eboot"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+psp.workspace = true
+psp-gfx.workspace = true

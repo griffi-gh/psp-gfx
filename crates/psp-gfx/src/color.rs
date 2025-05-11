@@ -1,5 +1,5 @@
 #[derive(Clone, Copy)]
-pub struct Color(pub u32);
+pub struct Color(u32);
 
 impl Color {
     pub const BLACK: Self = Self::from_rgba(0x000000ff);
@@ -11,8 +11,18 @@ impl Color {
     pub const fn from_rgba(x: u32) -> Self {
         Self(x.swap_bytes())
     }
+    pub const fn from_abgr(x: u32) -> Self {
+        Self(x)
+    }
     pub const fn from_rgb(x: u32) -> Self {
         Self((x << 8 | 0xFF).swap_bytes())
+    }
+
+    pub const fn as_rgba(&self) -> u32 {
+        self.0.swap_bytes()
+    }
+    pub fn as_abgr(&self) -> u32 {
+        self.0
     }
 
     pub const fn r(&self) -> u8 {
