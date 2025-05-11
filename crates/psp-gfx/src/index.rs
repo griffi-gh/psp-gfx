@@ -1,6 +1,6 @@
 use psp::sys::VertexType;
 
-/// Marker trait used on [`TypedBuffers`] that can be used as Index Buffers for drawing
+/// Marker trait implemented on types that can be used as indices for indexed rendering
 pub unsafe trait IndexItem {
     /// internal implementeation detail.
     fn vtype() -> VertexType;

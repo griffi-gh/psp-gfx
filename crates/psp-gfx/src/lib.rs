@@ -11,6 +11,9 @@ use psp::{
     vram_alloc::get_vram_allocator,
 };
 
+#[cfg(feature = "gfx_ext")]
+pub mod gfx_ext;
+
 pub mod buffer;
 pub mod color;
 pub mod index;
@@ -29,9 +32,9 @@ pub use paste;
 pub static mut BUFFER: Align16<[u32; 0x40000]> = Align16([0; 0x40000]);
 
 pub struct PspGfx {
-    fbp0: *mut u8,
-    fbp1: *mut u8,
-    zbp: *mut u8,
+    pub(crate) fbp0: *mut u8,
+    pub(crate) fbp1: *mut u8,
+    pub(crate) zbp: *mut u8,
 }
 
 impl PspGfx {
