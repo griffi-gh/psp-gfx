@@ -100,13 +100,15 @@ impl GraphicsManager {
     }
 
     pub fn draw(&mut self, vtx: &[Vertex], color: Color, primitive: GuPrimitive) {
-        let need_bytes = core::mem::size_of_val(vtx);
-        assert!(need_bytes < i32::MAX as usize);
+        let len = vtx.len();
+        let len_bytes = core::mem::size_of_val(vtx);
+        assert!(len_bytes < i32::MAX as usize);
 
-        let buffer = unsafe { sys::sceGuGetMemory(need_bytes as i32) };
+        let buffer = unsafe { sys::sceGuGetMemory(len_bytes as i32) };
         unsafe {
-            core::ptr::copy_nonoverlapping(vtx.as_ptr(), buffer as *mut Vertex, vtx.len());
+            core::ptr::copy_nonoverlapping(vtx.as_ptr(), buffer as *mut Vertex, len);
         }
+
         unsafe {
             sys::sceGuColor(color.0);
             sys::sceGuDrawArray(
