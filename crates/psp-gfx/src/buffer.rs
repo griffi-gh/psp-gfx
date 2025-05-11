@@ -4,8 +4,6 @@ use core::ops::{Deref, DerefMut};
 
 use psp::sys::VertexType;
 
-use crate::private::SealedTrait;
-
 pub struct UntypedBuffer<'a> {
     ptr: *mut c_void,
     size: i32,
@@ -112,7 +110,7 @@ impl<'a> From<UntypedBuffer<'a>> for TypedBuffer<'a, u8> {
 }
 
 /// Marker trait used on [`TypedBuffers`] that can be used as Index Buffers for drawing
-pub trait IndexBuffer: SealedTrait {
+pub unsafe trait IndexBuffer {
     /// internal implementeation detail. do not rely on this
     fn idx_vtype(&self) -> VertexType;
     /// internal implementeation detail. do not rely on this
@@ -121,8 +119,7 @@ pub trait IndexBuffer: SealedTrait {
     fn idx_buffer(&self) -> &UntypedBuffer;
 }
 
-impl<'a> SealedTrait for TypedBuffer<'a, u8> {}
-impl<'a> IndexBuffer for TypedBuffer<'a, u8> {
+unsafe impl<'a> IndexBuffer for TypedBuffer<'a, u8> {
     fn idx_vtype(&self) -> VertexType {
         VertexType::INDEX_8BIT
     }
@@ -134,8 +131,7 @@ impl<'a> IndexBuffer for TypedBuffer<'a, u8> {
     }
 }
 
-impl<'a> SealedTrait for TypedBuffer<'a, u16> {}
-impl<'a> IndexBuffer for TypedBuffer<'a, u16> {
+unsafe impl<'a> IndexBuffer for TypedBuffer<'a, u16> {
     fn idx_vtype(&self) -> VertexType {
         VertexType::INDEX_16BIT
     }

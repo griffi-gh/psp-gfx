@@ -11,10 +11,6 @@ use psp::{
     vram_alloc::get_vram_allocator,
 };
 
-pub(crate) mod private {
-    pub trait SealedTrait {}
-}
-
 pub mod buffer;
 pub mod color;
 pub mod rect;
