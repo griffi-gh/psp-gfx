@@ -13,7 +13,7 @@ pub mod rect;
 
 pub static mut BUFFER: Align16<[u32; 0x40000]> = Align16([0; 0x40000]);
 
-#[repr(C)]
+#[repr(C, align(32))]
 #[derive(Copy, Clone, Default)]
 pub struct Vertex {
     pub u: u16,
