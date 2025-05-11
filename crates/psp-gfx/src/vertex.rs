@@ -109,5 +109,5 @@ macro_rules! define_vertex_layout {
     (@color_type 5650) => { u16 };
     (@color_type 5551) => { u16 };
     (@color_type 4444) => { u16 };
-    (@color_type 8888) => { u32 };
+    (@color_type 8888) => { $crate::color::Color32 };
 }

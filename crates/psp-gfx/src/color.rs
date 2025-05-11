@@ -1,7 +1,8 @@
-#[derive(Clone, Copy)]
-pub struct Color(u32);
+#[derive(Clone, Copy, Default)]
+#[repr(transparent)]
+pub struct Color32(u32);
 
-impl Color {
+impl Color32 {
     pub const BLACK: Self = Self::from_rgba(0x000000ff);
     pub const WHITE: Self = Self::from_rgba(0xffffffff);
     pub const RED: Self = Self::from_rgba(0xff0000ff);

@@ -21,7 +21,7 @@ pub mod rect;
 pub mod vertex;
 
 use buffer::{IndexBuffer, TypedBuffer, UntypedBuffer};
-use color::Color;
+use color::Color32;
 use rect::Rect;
 use vertex::Vertex;
 
@@ -109,7 +109,7 @@ impl<'gfx> Frame<'gfx> {
         let _ = ManuallyDrop::new(self);
     }
 
-    pub fn clear_color_depth(&self, color: Color, depth: u32) {
+    pub fn clear_color_depth(&self, color: Color32, depth: u32) {
         unsafe {
             sys::sceGuClearColor(color.as_abgr());
             sys::sceGuClearDepth(depth);
@@ -119,7 +119,7 @@ impl<'gfx> Frame<'gfx> {
         }
     }
 
-    pub fn set_color(&self, color: Color) {
+    pub fn set_color(&self, color: Color32) {
         unsafe {
             sys::sceGuColor(color.as_abgr());
         }
