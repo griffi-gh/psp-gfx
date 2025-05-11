@@ -24,8 +24,6 @@ fn psp_main() -> ! {
     psp::dprintln!("current clock speed {cpu}/{bus}MHz");
     psp::dprintln!("Hello PSP from rust! owo");
 
-    let mut x;
-
     let gfx = PspGfx::init();
     loop {
         let frame = gfx.start_frame();
@@ -38,12 +36,12 @@ fn psp_main() -> ! {
                 w: SCREEN_WIDTH as i32,
                 h: FLAG_STRIP_HEIGHT as i32,
             };
-            let vtx_buf = unsafe { TypedBuffer::new(&rect.to_sprites_vertices()) };
-
             frame.set_color(Color::from_rgb(color));
-            frame.draw_array(&vtx_buf, None, GuPrimitive::Sprites);
-
-            x = vtx_buf;
+            frame.draw_array(
+                &frame.new_typed_buffer(&rect.to_sprites_vertices()),
+                None,
+                GuPrimitive::Sprites,
+            );
         }
 
         frame.finish();

@@ -85,11 +85,11 @@ impl PspGfx {
     }
 }
 
-pub struct Frame<'a> {
-    _gfx: &'a PspGfx,
+pub struct Frame<'gfx> {
+    _gfx: &'gfx PspGfx,
 }
 
-impl<'frame> Frame<'frame> {
+impl<'gfx> Frame<'gfx> {
     fn finish_non_consuming(&self) {
         unsafe {
             sys::sceGuFinish();
@@ -121,13 +121,13 @@ impl<'frame> Frame<'frame> {
         }
     }
 
-    // pub fn new_typed_buffer<'s: 'frame, T>(&'s self, data: &[T]) -> TypedBuffer<'s, T> {
-    //     unsafe { TypedBuffer::new(data) }
-    // }
+    pub fn new_typed_buffer<'frame, T>(&'frame self, data: &[T]) -> TypedBuffer<'frame, T> {
+        unsafe { TypedBuffer::new(data) }
+    }
 
-    // pub fn new_untyped_buffer<T>(&self, data: &[T]) -> UntypedBuffer<'frame> {
-    //     unsafe { UntypedBuffer::new(data) }
-    // }
+    pub fn new_untyped_buffer<'frame, T>(&'frame self, data: &[T]) -> UntypedBuffer<'frame> {
+        unsafe { UntypedBuffer::new(data) }
+    }
 
     pub fn draw_array(
         &self,
