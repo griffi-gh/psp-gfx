@@ -45,7 +45,7 @@ fn psp_main() -> ! {
                 h: FLAG_STRIP_HEIGHT as i32,
             };
             frame.draw_array(
-                &frame.new_typed_buffer(&[
+                &frame.get_memory_typed(&[
                     Vertex {
                         x: rect.x as _,
                         y: rect.y as _,

@@ -6,18 +6,20 @@ use psp::sys::VertexType;
 
 use crate::private::SealedTrait;
 
-pub struct UntypedBuffer<'frame> {
+pub struct UntypedBuffer<'a> {
     ptr: *mut c_void,
     size: i32,
-    _phantom: PhantomData<&'frame ()>,
+    _phantom: PhantomData<&'a ()>,
 }
 
-impl<'frame> UntypedBuffer<'frame> {
+impl<'a> UntypedBuffer<'a> {
+    /// Get memory from sceGuGetMemory as an untyped buffer
+    ///
+    /// Use `frame.get_memory_untyped` for a safe alternative
+    ///
     /// Safety:
     /// - Must not outlive current frame.
-    ///
-    /// Use `frame.new_untyped_buffer` for a safe alternative
-    pub unsafe fn new<T>(data: &[T]) -> Self {
+    pub unsafe fn get_memory<T>(data: &[T]) -> Self {
         let len = data.len();
         let len_bytes = core::mem::size_of_val(data);
         assert!(len_bytes < i32::MAX as usize);
@@ -42,32 +44,34 @@ impl<'frame> UntypedBuffer<'frame> {
 }
 
 #[repr(transparent)]
-pub struct TypedBuffer<'frame, T> {
-    inner: UntypedBuffer<'frame>,
+pub struct TypedBuffer<'a, T> {
+    inner: UntypedBuffer<'a>,
     _phantom: PhantomData<T>,
 }
 
-impl<'frame, T> Deref for TypedBuffer<'frame, T> {
-    type Target = UntypedBuffer<'frame>;
+impl<'a, T> Deref for TypedBuffer<'a, T> {
+    type Target = UntypedBuffer<'a>;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
 
-impl<'frame, T> DerefMut for TypedBuffer<'frame, T> {
+impl<'a, T> DerefMut for TypedBuffer<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
 }
 
-impl<'frame, T> TypedBuffer<'frame, T> {
+impl<'a, T> TypedBuffer<'a, T> {
+    /// Get memory from sceGuGetMemory as a typed buffer
+    ///
+    /// Use `frame.get_memory_typed` for a safe alternative
+    ///
     /// Safety:
     /// - Must not outlive current frame.
-    ///
-    /// Use `frame.new_typed_buffer` for a safe alternative
-    pub unsafe fn new(data: &[T]) -> Self {
+    pub unsafe fn get_memory(data: &[T]) -> Self {
         Self {
-            inner: unsafe { UntypedBuffer::new(data) },
+            inner: unsafe { UntypedBuffer::get_memory(data) },
             _phantom: PhantomData,
         }
     }
@@ -87,19 +91,19 @@ impl<'frame, T> TypedBuffer<'frame, T> {
     }
 
     /// Converts [`TypedBuffer`] into [`UntypedBuffer`]
-    pub fn into_untyped(self) -> UntypedBuffer<'frame> {
+    pub fn into_untyped(self) -> UntypedBuffer<'a> {
         self.inner
     }
 }
 
-impl<'frame, T> From<TypedBuffer<'frame, T>> for UntypedBuffer<'frame> {
-    fn from(buffer: TypedBuffer<'frame, T>) -> Self {
+impl<'a, T> From<TypedBuffer<'a, T>> for UntypedBuffer<'a> {
+    fn from(buffer: TypedBuffer<'a, T>) -> Self {
         buffer.into_untyped()
     }
 }
 
-impl<'frame> From<UntypedBuffer<'frame>> for TypedBuffer<'frame, u8> {
-    fn from(buffer: UntypedBuffer<'frame>) -> Self {
+impl<'a> From<UntypedBuffer<'a>> for TypedBuffer<'a, u8> {
+    fn from(buffer: UntypedBuffer<'a>) -> Self {
         TypedBuffer {
             inner: buffer,
             _phantom: PhantomData,
@@ -117,8 +121,8 @@ pub trait IndexBuffer: SealedTrait {
     fn idx_buffer(&self) -> &UntypedBuffer;
 }
 
-impl<'frame> SealedTrait for TypedBuffer<'frame, u8> {}
-impl<'frame> IndexBuffer for TypedBuffer<'frame, u8> {
+impl<'a> SealedTrait for TypedBuffer<'a, u8> {}
+impl<'a> IndexBuffer for TypedBuffer<'a, u8> {
     fn idx_vtype(&self) -> VertexType {
         VertexType::INDEX_8BIT
     }
@@ -130,8 +134,8 @@ impl<'frame> IndexBuffer for TypedBuffer<'frame, u8> {
     }
 }
 
-impl<'frame> SealedTrait for TypedBuffer<'frame, u16> {}
-impl<'frame> IndexBuffer for TypedBuffer<'frame, u16> {
+impl<'a> SealedTrait for TypedBuffer<'a, u16> {}
+impl<'a> IndexBuffer for TypedBuffer<'a, u16> {
     fn idx_vtype(&self) -> VertexType {
         VertexType::INDEX_16BIT
     }

@@ -131,12 +131,18 @@ impl<'gfx> Frame<'gfx> {
         }
     }
 
-    pub fn new_typed_buffer<'frame, T>(&'frame self, data: &[T]) -> TypedBuffer<'frame, T> {
-        unsafe { TypedBuffer::new(data) }
+    /// Get memory from sceGuGetMemory as a typed buffer
+    ///
+    /// Safe wrapper for [`TypedBuffer::get_memory`]
+    pub fn get_memory_typed<'frame, T>(&'frame self, data: &[T]) -> TypedBuffer<'frame, T> {
+        unsafe { TypedBuffer::get_memory(data) }
     }
 
-    pub fn new_untyped_buffer<'frame, T>(&'frame self, data: &[T]) -> UntypedBuffer<'frame> {
-        unsafe { UntypedBuffer::new(data) }
+    /// Get memory from sceGuGetMemory as an untyped buffer
+    ///
+    /// Safe wrapper for [`UntypedBuffer::get_memory`]
+    pub fn get_memory_untyped<'frame, T>(&'frame self, data: &[T]) -> UntypedBuffer<'frame> {
+        unsafe { UntypedBuffer::get_memory(data) }
     }
 
     pub fn draw_array<V: Vertex + Default>(
