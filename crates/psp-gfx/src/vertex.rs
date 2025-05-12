@@ -111,37 +111,39 @@ macro_rules! define_vertex_layout {
                 }
             }
 
-            // pub const fn from_position2_uv(
-            //     x: $crate::define_vertex_layout!(@vertex $vertex),
-            //     y: $crate::define_vertex_layout!(@vertex $vertex),
-            //     u: $crate::define_vertex_layout!(@texture $texture),
-            //     v: $crate::define_vertex_layout!(@texture $texture),
-            // ) -> Self {
-            //     Self {
-            //         x,
-            //         y,
-            //         u,
-            //         v,
-            //         ..Self::DEFAULT
-            //     }
-            // }
+            $(
+                pub const fn from_position2_uv(
+                    x: $crate::define_vertex_layout!(@vertex $vertex),
+                    y: $crate::define_vertex_layout!(@vertex $vertex),
+                    u: $crate::define_vertex_layout!(@texture $texture),
+                    v: $crate::define_vertex_layout!(@texture $texture),
+                ) -> Self {
+                    Self {
+                        x,
+                        y,
+                        u,
+                        v,
+                        ..Self::DEFAULT
+                    }
+                }
 
-            // pub const fn from_position_uv(
-            //     x: $crate::define_vertex_layout!(@vertex $vertex),
-            //     y: $crate::define_vertex_layout!(@vertex $vertex),
-            //     z: $crate::define_vertex_layout!(@vertex $vertex),
-            //     u: $crate::define_vertex_layout!(@texture $texture),
-            //     v: $crate::define_vertex_layout!(@texture $texture),
-            // ) -> Self {
-            //     Self {
-            //         x,
-            //         y,
-            //         z,
-            //         u,
-            //         v,
-            //         ..Self::DEFAULT
-            //     }
-            // }
+                pub const fn from_position_uv(
+                    x: $crate::define_vertex_layout!(@vertex $vertex),
+                    y: $crate::define_vertex_layout!(@vertex $vertex),
+                    z: $crate::define_vertex_layout!(@vertex $vertex),
+                    u: $crate::define_vertex_layout!(@texture $texture),
+                    v: $crate::define_vertex_layout!(@texture $texture),
+                ) -> Self {
+                    Self {
+                        x,
+                        y,
+                        z,
+                        u,
+                        v,
+                        ..Self::DEFAULT
+                    }
+                }
+            )?
 
             $(
                 pub const fn from_position2_color(
@@ -172,41 +174,43 @@ macro_rules! define_vertex_layout {
                     }
                 }
 
-            //     pub const fn from_position2_uv_color(
-            //         x: $crate::define_vertex_layout!(@vertex $vertex),
-            //         y: $crate::define_vertex_layout!(@vertex $vertex),
-            //         u: $crate::define_vertex_layout!(@texture $texture),
-            //         v: $crate::define_vertex_layout!(@texture $texture),
-            //         color: $crate::define_vertex_layout!(@color $color),
-            //     ) -> Self {
-            //         Self {
-            //             x,
-            //             y,
-            //             u,
-            //             v,
-            //             color,
-            //             ..Self::DEFAULT
-            //         }
-            //     }
+                $(
+                    pub const fn from_position2_uv_color(
+                        x: $crate::define_vertex_layout!(@vertex $vertex),
+                        y: $crate::define_vertex_layout!(@vertex $vertex),
+                        u: $crate::define_vertex_layout!(@texture $texture),
+                        v: $crate::define_vertex_layout!(@texture $texture),
+                        color: $crate::define_vertex_layout!(@color $color),
+                    ) -> Self {
+                        Self {
+                            x,
+                            y,
+                            u,
+                            v,
+                            color,
+                            ..Self::DEFAULT
+                        }
+                    }
 
-            //     pub const fn from_position_uv_color(
-            //         x: $crate::define_vertex_layout!(@vertex $vertex),
-            //         y: $crate::define_vertex_layout!(@vertex $vertex),
-            //         z: $crate::define_vertex_layout!(@vertex $vertex),
-            //         u: $crate::define_vertex_layout!(@texture $texture),
-            //         v: $crate::define_vertex_layout!(@texture $texture),
-            //         color: $crate::define_vertex_layout!(@color $color),
-            //     ) -> Self {
-            //         Self {
-            //             x,
-            //             y,
-            //             z,
-            //             u,
-            //             v,
-            //             color,
-            //             ..Self::DEFAULT
-            //         }
-            //     }
+                    pub const fn from_position_uv_color(
+                        x: $crate::define_vertex_layout!(@vertex $vertex),
+                        y: $crate::define_vertex_layout!(@vertex $vertex),
+                        z: $crate::define_vertex_layout!(@vertex $vertex),
+                        u: $crate::define_vertex_layout!(@texture $texture),
+                        v: $crate::define_vertex_layout!(@texture $texture),
+                        color: $crate::define_vertex_layout!(@color $color),
+                    ) -> Self {
+                        Self {
+                            x,
+                            y,
+                            z,
+                            u,
+                            v,
+                            color,
+                            ..Self::DEFAULT
+                        }
+                    }
+                )*
             )*
         }
 
