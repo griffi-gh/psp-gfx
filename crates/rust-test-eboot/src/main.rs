@@ -5,7 +5,10 @@ extern crate alloc;
 
 psp::module!("sample_module", 1, 1);
 
-use psp::{SCREEN_HEIGHT, SCREEN_WIDTH, sys::GuPrimitive};
+use psp::{
+    SCREEN_HEIGHT, SCREEN_WIDTH,
+    sys::{GuPrimitive, TextureColorComponent, TextureEffect},
+};
 use psp_gfx::{PspGfx, color::Color32, define_vertex_layout, rect::Rect};
 
 const FLAG_COLORS: &[u32] = &[0xE40303, 0xFF8C00, 0xFFED00, 0x008026, 0x004CFF, 0x732982];
@@ -65,6 +68,11 @@ fn psp_main() -> ! {
     loop {
         let frame = gfx.start_frame();
         frame.clear_color_depth(Color32::BLACK, 0);
+
+        unsafe {
+            psp::sys::sceGuTexFunc(TextureEffect::Modulate, TextureColorComponent::Rgba);
+            psp::sys::sceGuShadeModel(psp::sys::ShadingModel::Smooth);
+        }
 
         let buf = frame.get_memory(&vertices);
         frame.draw_array(GuPrimitive::Sprites, &buf);
