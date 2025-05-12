@@ -19,16 +19,8 @@ impl<'gfx> GfxExt for Frame<'gfx> {
             }
         };
         let vertex_buf = self.get_memory(&[
-            Vertex {
-                x: rect.x as _,
-                y: rect.y as _,
-                ..Default::default()
-            },
-            Vertex {
-                x: (rect.x + rect.w) as _,
-                y: (rect.y + rect.h) as _,
-                ..Default::default()
-            },
+            Vertex::from_position2(rect.x as u16, rect.y as u16),
+            Vertex::from_position2((rect.x + rect.w) as u16, (rect.y + rect.h) as u16),
         ]);
         self.draw_array(GuPrimitive::Sprites, &vertex_buf);
     }

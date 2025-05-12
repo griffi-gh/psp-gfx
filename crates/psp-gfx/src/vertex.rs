@@ -22,6 +22,9 @@ macro_rules! define_vertex_layout {
         #[repr(C, align(4))]
         #[derive(::core::marker::Copy, ::core::clone::Clone, ::core::default::Default)]
         struct $name {
+            $(
+                pub weight: $crate::define_vertex_layout!(@weight $weight),
+            )?
             pub u: $crate::define_vertex_layout!(@texture $texture),
             pub v: $crate::define_vertex_layout!(@texture $texture),
             $(
@@ -31,9 +34,6 @@ macro_rules! define_vertex_layout {
                 pub normal_x: $crate::define_vertex_layout!(@normal $normal),
                 pub normal_y: $crate::define_vertex_layout!(@normal $normal),
                 pub normal_z: $crate::define_vertex_layout!(@normal $normal),
-            )?
-            $(
-                pub weight: $crate::define_vertex_layout!(@weight $weight),
             )?
             pub x: $crate::define_vertex_layout!(@vertex $vertex),
             pub y: $crate::define_vertex_layout!(@vertex $vertex),
