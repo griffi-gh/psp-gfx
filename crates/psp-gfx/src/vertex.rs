@@ -19,7 +19,7 @@ macro_rules! define_vertex_layout {
             $(,)?
         } $(;)?
     ) => {
-        #[repr(C)]
+        #[repr(C, align(4))]
         #[derive(::core::marker::Copy, ::core::clone::Clone, ::core::default::Default)]
         struct $name {
             pub u: $crate::define_vertex_layout!(@texture $texture),
@@ -38,6 +38,22 @@ macro_rules! define_vertex_layout {
             pub x: define_vertex_layout!(@vertex $vertex),
             pub y: define_vertex_layout!(@vertex $vertex),
             pub z: define_vertex_layout!(@vertex $vertex),
+            pub _padding: [u8; {
+                const SIZE: usize = {
+                    (2 * ::core::mem::size_of::<$crate::define_vertex_layout!(@texture $texture)>())
+                    $(
+                        + ::core::mem::size_of::<$crate::define_vertex_layout!(@color $color)>()
+                    )?
+                    $(
+                        + (3 * ::core::mem::size_of::<$crate::define_vertex_layout!(@normal $normal)>())
+                    )?
+                    $(
+                        + ::core::mem::size_of::<$crate::define_vertex_layout!(@weight $weight)>()
+                    )?
+                    + (3 * ::core::mem::size_of::<$crate::define_vertex_layout!(@vertex $vertex)>())
+                };
+                (4 - (SIZE % 4)) % 4
+            }]
         }
         impl $crate::vertex::Vertex for $name {
             fn vtype() -> ::psp::sys::VertexType {
@@ -118,10 +134,10 @@ macro_rules! define_vertex_layout {
     };
 }
 
-// define_vertex_layout! {
-//     Test {
-//         texture: TEXTURE_16BIT,
-//         vertex: VERTEX_16BIT,
-//         transform: TRANSFORM_2D
-//     }
-// }
+define_vertex_layout! {
+    Test {
+        texture: TEXTURE_16BIT,
+        vertex: VERTEX_16BIT,
+        transform: TRANSFORM_2D
+    }
+}
