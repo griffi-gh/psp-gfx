@@ -79,7 +79,7 @@ impl PspGfx {
         Self { fbp0, fbp1, zbp }
     }
 
-    pub fn start_frame<'a>(&'a self) -> Frame<'a> {
+    pub fn start_frame<'a>(&'a mut self) -> Frame<'a> {
         unsafe {
             sys::sceGuStart(
                 psp::sys::GuContextType::Direct,
@@ -91,7 +91,7 @@ impl PspGfx {
 }
 
 pub struct Frame<'gfx> {
-    _gfx: &'gfx PspGfx,
+    _gfx: &'gfx mut PspGfx,
 }
 
 impl<'gfx> Frame<'gfx> {
@@ -104,12 +104,32 @@ impl<'gfx> Frame<'gfx> {
         }
     }
 
+    /// Finish rendering
+    ///
+    /// Note that you don't have to call this as the `Frame` is terminated automatically when it's dropped
     pub fn finish(self) {
         self.finish_non_consuming();
         // XXX: this could *potentially* leak
         let _ = ManuallyDrop::new(self);
     }
 
+    /// Clear the color buffer with the specified color
+    pub fn clear_color(&self, color: Color32) {
+        unsafe {
+            sys::sceGuClearColor(color.as_abgr());
+            sys::sceGuClear(sys::ClearBuffer::COLOR_BUFFER_BIT);
+        }
+    }
+
+    /// Clear the depth buffer using the specified depth
+    pub fn clear_depth(&self, depth: u32) {
+        unsafe {
+            sys::sceGuClearDepth(depth);
+            sys::sceGuClear(sys::ClearBuffer::DEPTH_BUFFER_BIT);
+        }
+    }
+
+    /// Clear both color and depth buffers using the specified data
     pub fn clear_color_depth(&self, color: Color32, depth: u32) {
         unsafe {
             sys::sceGuClearColor(color.as_abgr());

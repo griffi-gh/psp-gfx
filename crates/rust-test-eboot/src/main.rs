@@ -55,7 +55,7 @@ fn psp_main() -> ! {
         };
     }
 
-    let gfx = PspGfx::init();
+    let mut gfx = PspGfx::init();
     loop {
         let frame = gfx.start_frame();
         frame.clear_color_depth(Color32::BLACK, 0);
