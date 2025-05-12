@@ -19,13 +19,13 @@ pub unsafe trait Buffer {
     }
 }
 
-pub struct TransientBuffer<'frame, T> {
+pub struct TransientBuffer<'frame, T: Clone + Copy> {
     ptr: *mut c_void,
     size: i32,
     _phantom: PhantomData<&'frame T>,
 }
 
-impl<'frame, T> TransientBuffer<'frame, T> {
+impl<'frame, T: Clone + Copy> TransientBuffer<'frame, T> {
     /// Get memory from sceGuGetMemory as a [`TransientBuffer`]
     ///
     /// Use `frame.get_memory` for a safe alternative
@@ -48,7 +48,7 @@ impl<'frame, T> TransientBuffer<'frame, T> {
     }
 }
 
-unsafe impl<'frame, T> Buffer for TransientBuffer<'frame, T> {
+unsafe impl<'frame, T: Clone + Copy> Buffer for TransientBuffer<'frame, T> {
     type Item = T;
 
     fn as_ptr(&self) -> *const c_void {

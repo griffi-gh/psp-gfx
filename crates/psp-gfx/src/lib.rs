@@ -155,7 +155,10 @@ impl<'gfx> Frame<'gfx> {
     /// Get memory from sceGuGetMemory as a [`TransientBuffer`]
     ///
     /// (Safe alternative to [`UntypedBuffer::get_memory_static`])
-    pub fn get_memory<'frame, T>(&'frame self, data: &[T]) -> TransientBuffer<'frame, T> {
+    pub fn get_memory<'frame, T: Clone + Copy>(
+        &'frame self,
+        data: &[T],
+    ) -> TransientBuffer<'frame, T> {
         unsafe { TransientBuffer::get_memory_static(data) }
     }
 
