@@ -78,7 +78,7 @@ macro_rules! define_vertex_layout {
                 $(
                     normal_x: { stringify!($normal); 0 },
                     normal_y: 0,
-                    pub normal_z: 0,
+                    normal_z: 0,
                 )?
                 x: 0,
                 y: 0,
@@ -86,7 +86,6 @@ macro_rules! define_vertex_layout {
                 _padding: [0; Self::PADDING],
             };
 
-            // TODO use macros to generate these
             pub const fn from_position2(
                 x: $crate::define_vertex_layout!(@vertex $vertex),
                 y: $crate::define_vertex_layout!(@vertex $vertex),
@@ -173,44 +172,6 @@ macro_rules! define_vertex_layout {
                         ..Self::DEFAULT
                     }
                 }
-
-                // $(
-                //     pub const fn from_position2_uv_color(
-                //         x: $crate::define_vertex_layout!(@vertex $vertex),
-                //         y: $crate::define_vertex_layout!(@vertex $vertex),
-                //         u: $crate::define_vertex_layout!(@texture $texture),
-                //         v: $crate::define_vertex_layout!(@texture $texture),
-                //         color: $crate::define_vertex_layout!(@color $color),
-                //     ) -> Self {
-                //         Self {
-                //             x,
-                //             y,
-                //             u,
-                //             v,
-                //             color,
-                //             ..Self::DEFAULT
-                //         }
-                //     }
-
-                //     pub const fn from_position_uv_color(
-                //         x: $crate::define_vertex_layout!(@vertex $vertex),
-                //         y: $crate::define_vertex_layout!(@vertex $vertex),
-                //         z: $crate::define_vertex_layout!(@vertex $vertex),
-                //         u: $crate::define_vertex_layout!(@texture $texture),
-                //         v: $crate::define_vertex_layout!(@texture $texture),
-                //         color: $crate::define_vertex_layout!(@color $color),
-                //     ) -> Self {
-                //         Self {
-                //             x,
-                //             y,
-                //             z,
-                //             u,
-                //             v,
-                //             color,
-                //             ..Self::DEFAULT
-                //         }
-                //     }
-                // )?
             )?
         }
 
