@@ -9,9 +9,9 @@ pub trait Vertex {
 macro_rules! define_vertex_layout {
     (
         $name:ident {
-            texture: $texture:ident
-            , vertex: $vertex:ident
-            , transform: $transform:ident
+            vertex: $vertex:ident,
+            transform: $transform:ident
+            $(, texture: $texture:ident)?
             $(, color: $color:ident)?
             $(, normal: $normal:ident)?
             $(, weight: $weight:ident)?
@@ -20,13 +20,15 @@ macro_rules! define_vertex_layout {
         } $(;)?
     ) => {
         #[repr(C, align(4))]
-        #[derive(::core::marker::Copy, ::core::clone::Clone, ::core::default::Default)]
+        #[derive(::core::marker::Copy, ::core::clone::Clone)]
         struct $name {
             $(
                 pub weight: $crate::define_vertex_layout!(@weight $weight),
             )?
-            pub u: $crate::define_vertex_layout!(@texture $texture),
-            pub v: $crate::define_vertex_layout!(@texture $texture),
+            $(
+                pub u: $crate::define_vertex_layout!(@texture $texture),
+                pub v: $crate::define_vertex_layout!(@texture $texture),
+            )?
             $(
                 pub color: $crate::define_vertex_layout!(@color $color),
             )?
@@ -38,9 +40,17 @@ macro_rules! define_vertex_layout {
             pub x: $crate::define_vertex_layout!(@vertex $vertex),
             pub y: $crate::define_vertex_layout!(@vertex $vertex),
             pub z: $crate::define_vertex_layout!(@vertex $vertex),
-            pub _padding: [u8; {
+            pub _padding: [u8; Self::PADDING]
+        }
+
+        #[allow(unused)]
+        impl $name {
+            const PADDING: usize = {
                 const SIZE: usize = {
-                    (2 * ::core::mem::size_of::<$crate::define_vertex_layout!(@texture $texture)>())
+                    0
+                    $(
+                        + (2 * ::core::mem::size_of::<$crate::define_vertex_layout!(@texture $texture)>())
+                    )?
                     $(
                         + ::core::mem::size_of::<$crate::define_vertex_layout!(@color $color)>()
                     )?
@@ -53,23 +63,42 @@ macro_rules! define_vertex_layout {
                     + (3 * ::core::mem::size_of::<$crate::define_vertex_layout!(@vertex $vertex)>())
                 };
                 (4 - (SIZE % 4)) % 4
-            }]
-        }
-        #[allow(unused)]
-        impl $name {
+            };
+            const DEFAULT: Self = Self {
+                $(
+                    weight: { stringify!($weight); 0 },
+                )?
+                $(
+                    u: { stringify!($texture); 0 },
+                    v: 0,
+                )?
+                $(
+                    color: $crate::define_vertex_layout!(@color_default $color),
+                )?
+                $(
+                    normal_x: { stringify!($normal); 0 },
+                    normal_y: 0,
+                    pub normal_z: 0,
+                )?
+                x: 0,
+                y: 0,
+                z: 0,
+                _padding: [0; Self::PADDING],
+            };
+
             // TODO use macros to generate these
-            pub fn from_position2(
+            pub const fn from_position2(
                 x: $crate::define_vertex_layout!(@vertex $vertex),
                 y: $crate::define_vertex_layout!(@vertex $vertex),
             ) -> Self {
                 Self {
                     x,
                     y,
-                    ..::core::default::Default::default()
+                    ..Self::DEFAULT
                 }
             }
 
-            pub fn from_position(
+            pub const fn from_position(
                 x: $crate::define_vertex_layout!(@vertex $vertex),
                 y: $crate::define_vertex_layout!(@vertex $vertex),
                 z: $crate::define_vertex_layout!(@vertex $vertex),
@@ -78,44 +107,44 @@ macro_rules! define_vertex_layout {
                     x,
                     y,
                     z,
-                    ..::core::default::Default::default()
+                    ..Self::DEFAULT
                 }
             }
 
-            pub fn from_position2_uv(
-                x: $crate::define_vertex_layout!(@vertex $vertex),
-                y: $crate::define_vertex_layout!(@vertex $vertex),
-                u: $crate::define_vertex_layout!(@texture $texture),
-                v: $crate::define_vertex_layout!(@texture $texture),
-            ) -> Self {
-                Self {
-                    x,
-                    y,
-                    u,
-                    v,
-                    ..::core::default::Default::default()
-                }
-            }
+            // pub const fn from_position2_uv(
+            //     x: $crate::define_vertex_layout!(@vertex $vertex),
+            //     y: $crate::define_vertex_layout!(@vertex $vertex),
+            //     u: $crate::define_vertex_layout!(@texture $texture),
+            //     v: $crate::define_vertex_layout!(@texture $texture),
+            // ) -> Self {
+            //     Self {
+            //         x,
+            //         y,
+            //         u,
+            //         v,
+            //         ..Self::DEFAULT
+            //     }
+            // }
 
-            pub fn from_position_uv(
-                x: $crate::define_vertex_layout!(@vertex $vertex),
-                y: $crate::define_vertex_layout!(@vertex $vertex),
-                z: $crate::define_vertex_layout!(@vertex $vertex),
-                u: $crate::define_vertex_layout!(@texture $texture),
-                v: $crate::define_vertex_layout!(@texture $texture),
-            ) -> Self {
-                Self {
-                    x,
-                    y,
-                    z,
-                    u,
-                    v,
-                    ..::core::default::Default::default()
-                }
-            }
+            // pub const fn from_position_uv(
+            //     x: $crate::define_vertex_layout!(@vertex $vertex),
+            //     y: $crate::define_vertex_layout!(@vertex $vertex),
+            //     z: $crate::define_vertex_layout!(@vertex $vertex),
+            //     u: $crate::define_vertex_layout!(@texture $texture),
+            //     v: $crate::define_vertex_layout!(@texture $texture),
+            // ) -> Self {
+            //     Self {
+            //         x,
+            //         y,
+            //         z,
+            //         u,
+            //         v,
+            //         ..Self::DEFAULT
+            //     }
+            // }
 
             $(
-                pub fn from_position2_color(
+                pub const fn from_position2_color(
                     x: $crate::define_vertex_layout!(@vertex $vertex),
                     y: $crate::define_vertex_layout!(@vertex $vertex),
                     color: $crate::define_vertex_layout!(@color $color),
@@ -124,11 +153,11 @@ macro_rules! define_vertex_layout {
                         x,
                         y,
                         color,
-                        ..::core::default::Default::default()
+                        ..Self::DEFAULT
                     }
                 }
 
-                pub fn from_position_color(
+                pub const fn from_position_color(
                     x: $crate::define_vertex_layout!(@vertex $vertex),
                     y: $crate::define_vertex_layout!(@vertex $vertex),
                     z: $crate::define_vertex_layout!(@vertex $vertex),
@@ -139,54 +168,64 @@ macro_rules! define_vertex_layout {
                         y,
                         z,
                         color,
-                        ..::core::default::Default::default()
+                        ..Self::DEFAULT
                     }
                 }
 
-                pub fn from_position2_uv_color(
-                    x: $crate::define_vertex_layout!(@vertex $vertex),
-                    y: $crate::define_vertex_layout!(@vertex $vertex),
-                    u: $crate::define_vertex_layout!(@texture $texture),
-                    v: $crate::define_vertex_layout!(@texture $texture),
-                    color: $crate::define_vertex_layout!(@color $color),
-                ) -> Self {
-                    Self {
-                        x,
-                        y,
-                        u,
-                        v,
-                        color,
-                        ..::core::default::Default::default()
-                    }
-                }
+            //     pub const fn from_position2_uv_color(
+            //         x: $crate::define_vertex_layout!(@vertex $vertex),
+            //         y: $crate::define_vertex_layout!(@vertex $vertex),
+            //         u: $crate::define_vertex_layout!(@texture $texture),
+            //         v: $crate::define_vertex_layout!(@texture $texture),
+            //         color: $crate::define_vertex_layout!(@color $color),
+            //     ) -> Self {
+            //         Self {
+            //             x,
+            //             y,
+            //             u,
+            //             v,
+            //             color,
+            //             ..Self::DEFAULT
+            //         }
+            //     }
 
-                pub fn from_position_uv_color(
-                    x: $crate::define_vertex_layout!(@vertex $vertex),
-                    y: $crate::define_vertex_layout!(@vertex $vertex),
-                    z: $crate::define_vertex_layout!(@vertex $vertex),
-                    u: $crate::define_vertex_layout!(@texture $texture),
-                    v: $crate::define_vertex_layout!(@texture $texture),
-                    color: $crate::define_vertex_layout!(@color $color),
-                ) -> Self {
-                    Self {
-                        x,
-                        y,
-                        z,
-                        u,
-                        v,
-                        color,
-                        ..::core::default::Default::default()
-                    }
-                }
+            //     pub const fn from_position_uv_color(
+            //         x: $crate::define_vertex_layout!(@vertex $vertex),
+            //         y: $crate::define_vertex_layout!(@vertex $vertex),
+            //         z: $crate::define_vertex_layout!(@vertex $vertex),
+            //         u: $crate::define_vertex_layout!(@texture $texture),
+            //         v: $crate::define_vertex_layout!(@texture $texture),
+            //         color: $crate::define_vertex_layout!(@color $color),
+            //     ) -> Self {
+            //         Self {
+            //             x,
+            //             y,
+            //             z,
+            //             u,
+            //             v,
+            //             color,
+            //             ..Self::DEFAULT
+            //         }
+            //     }
             )*
         }
+
+        impl ::core::default::Default for $name {
+            fn default() -> Self {
+                Self::DEFAULT
+            }
+        }
+
         impl $crate::vertex::Vertex for $name {
             fn vtype() -> ::psp::sys::VertexType {
+                ::psp::sys::VertexType::empty()
                 $(
-                    ::psp::sys::VertexType::$weight |
-                    ::psp::sys::VertexType::WEIGHTS1 |
+                    | ::psp::sys::VertexType::$weight
+                    | ::psp::sys::VertexType::WEIGHTS1
                 )?
-                ::psp::sys::VertexType::$texture
+                $(
+                    | ::psp::sys::VertexType::$texture
+                )?
                 $(
                     | ::psp::sys::VertexType::$color
                 )?
@@ -212,6 +251,7 @@ macro_rules! define_vertex_layout {
     (@texture TEXTURE_32BITF) => {
         f32
     };
+
     (@color COLOR_5650) => {
         u16
     };
@@ -224,6 +264,20 @@ macro_rules! define_vertex_layout {
     (@color COLOR_8888) => {
         $crate::color::Color32
     };
+
+    (@color_default COLOR_5650) => {
+        0
+    };
+    (@color_default COLOR_5551) => {
+        0
+    };
+    (@color_default COLOR_4444) => {
+        0
+    };
+    (@color_default COLOR_8888) => {
+        $crate::color::Color32::TRANSPARENT
+    };
+
     (@normal NORMAL_8BIT) => {
         u8
     };
@@ -232,7 +286,9 @@ macro_rules! define_vertex_layout {
     };
     (@normal NORMAL_32BITF) => {
         f32
+
     };
+
     (@vertex VERTEX_8BIT) => {
         u8
     };
@@ -242,6 +298,7 @@ macro_rules! define_vertex_layout {
     (@vertex VERTEX_32BITF) => {
         f32
     };
+
     (@weight WEIGHT_8BIT) => {
         u8
     };
@@ -251,6 +308,7 @@ macro_rules! define_vertex_layout {
     (@weight WEIGHT_32BITF) => {
         f32
     };
+
     (@index INDEX_8BIT) => {
         u8
     };
@@ -258,11 +316,3 @@ macro_rules! define_vertex_layout {
         u16
     };
 }
-
-// define_vertex_layout! {
-//     Test {
-//         texture: TEXTURE_16BIT,
-//         vertex: VERTEX_16BIT,
-//         transform: TRANSFORM_2D
-//     }
-// }

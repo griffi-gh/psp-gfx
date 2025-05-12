@@ -11,14 +11,24 @@ use psp_gfx::{PspGfx, color::Color32, define_vertex_layout, rect::Rect};
 const FLAG_COLORS: &[u32] = &[0xE40303, 0xFF8C00, 0xFFED00, 0x008026, 0x004CFF, 0x732982];
 const FLAG_STRIP_HEIGHT: u32 = SCREEN_HEIGHT / FLAG_COLORS.len() as u32;
 
-define_vertex_layout! {
-    Vertex {
-        texture: TEXTURE_16BIT,
-        vertex: VERTEX_16BIT,
-        transform: TRANSFORM_2D,
-        color: COLOR_8888,
-    }
-}
+define_vertex_layout!(Vertex {
+    vertex: VERTEX_16BIT,
+    transform: TRANSFORM_2D,
+    texture: TEXTURE_16BIT,
+    color: COLOR_8888,
+});
+
+define_vertex_layout!(TVertex {
+    vertex: VERTEX_16BIT,
+    transform: TRANSFORM_2D,
+    color: COLOR_8888,
+});
+
+const TRIANGLE: &[TVertex] = &[
+    TVertex::from_position2_color(100, 200, Color32::RED),
+    TVertex::from_position2_color(200, 100, Color32::GREEN),
+    TVertex::from_position2_color(300, 200, Color32::BLUE),
+];
 
 fn psp_main() -> ! {
     psp::enable_home_button();
@@ -58,5 +68,8 @@ fn psp_main() -> ! {
 
         let buf = frame.get_memory(&vertices);
         frame.draw_array(GuPrimitive::Sprites, &buf);
+
+        let buf = frame.get_memory(TRIANGLE);
+        frame.draw_array(GuPrimitive::Triangles, &buf);
     }
 }

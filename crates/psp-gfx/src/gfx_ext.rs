@@ -13,7 +13,6 @@ impl<'gfx> GfxExt for Frame<'gfx> {
     fn gfx_rect(&self, rect: Rect) {
         define_vertex_layout! {
             Vertex {
-                texture: TEXTURE_16BIT,
                 vertex: VERTEX_16BIT,
                 transform: TRANSFORM_2D,
             }
