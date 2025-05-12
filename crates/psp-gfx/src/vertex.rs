@@ -35,9 +35,9 @@ macro_rules! define_vertex_layout {
             $(
                 pub weight: $crate::define_vertex_layout!(@weight $weight),
             )?
-            pub x: define_vertex_layout!(@vertex $vertex),
-            pub y: define_vertex_layout!(@vertex $vertex),
-            pub z: define_vertex_layout!(@vertex $vertex),
+            pub x: $crate::define_vertex_layout!(@vertex $vertex),
+            pub y: $crate::define_vertex_layout!(@vertex $vertex),
+            pub z: $crate::define_vertex_layout!(@vertex $vertex),
             pub _padding: [u8; {
                 const SIZE: usize = {
                     (2 * ::core::mem::size_of::<$crate::define_vertex_layout!(@texture $texture)>())
@@ -54,6 +54,129 @@ macro_rules! define_vertex_layout {
                 };
                 (4 - (SIZE % 4)) % 4
             }]
+        }
+        #[allow(unused)]
+        impl $name {
+            // TODO use macros to generate these
+            pub fn from_position2(
+                x: $crate::define_vertex_layout!(@vertex $vertex),
+                y: $crate::define_vertex_layout!(@vertex $vertex),
+            ) -> Self {
+                Self {
+                    x,
+                    y,
+                    ..::core::default::Default::default()
+                }
+            }
+
+            pub fn from_position(
+                x: $crate::define_vertex_layout!(@vertex $vertex),
+                y: $crate::define_vertex_layout!(@vertex $vertex),
+                z: $crate::define_vertex_layout!(@vertex $vertex),
+            ) -> Self {
+                Self {
+                    x,
+                    y,
+                    z,
+                    ..::core::default::Default::default()
+                }
+            }
+
+            pub fn from_position2_uv(
+                x: $crate::define_vertex_layout!(@vertex $vertex),
+                y: $crate::define_vertex_layout!(@vertex $vertex),
+                u: $crate::define_vertex_layout!(@texture $texture),
+                v: $crate::define_vertex_layout!(@texture $texture),
+            ) -> Self {
+                Self {
+                    x,
+                    y,
+                    u,
+                    v,
+                    ..::core::default::Default::default()
+                }
+            }
+
+            pub fn from_position_uv(
+                x: $crate::define_vertex_layout!(@vertex $vertex),
+                y: $crate::define_vertex_layout!(@vertex $vertex),
+                z: $crate::define_vertex_layout!(@vertex $vertex),
+                u: $crate::define_vertex_layout!(@texture $texture),
+                v: $crate::define_vertex_layout!(@texture $texture),
+            ) -> Self {
+                Self {
+                    x,
+                    y,
+                    z,
+                    u,
+                    v,
+                    ..::core::default::Default::default()
+                }
+            }
+
+            $(
+                pub fn from_position2_color(
+                    x: $crate::define_vertex_layout!(@vertex $vertex),
+                    y: $crate::define_vertex_layout!(@vertex $vertex),
+                    color: $crate::define_vertex_layout!(@color $color),
+                ) -> Self {
+                    Self {
+                        x,
+                        y,
+                        ..::core::default::Default::default()
+                    }
+                }
+
+                pub fn from_position_color(
+                    x: $crate::define_vertex_layout!(@vertex $vertex),
+                    y: $crate::define_vertex_layout!(@vertex $vertex),
+                    z: $crate::define_vertex_layout!(@vertex $vertex),
+                    color: $crate::define_vertex_layout!(@color $color),
+                ) -> Self {
+                    Self {
+                        x,
+                        y,
+                        z,
+                        ..::core::default::Default::default()
+                    }
+                }
+
+                pub fn from_position2_uv_color(
+                    x: $crate::define_vertex_layout!(@vertex $vertex),
+                    y: $crate::define_vertex_layout!(@vertex $vertex),
+                    u: $crate::define_vertex_layout!(@texture $texture),
+                    v: $crate::define_vertex_layout!(@texture $texture),
+                    color: $crate::define_vertex_layout!(@color $color),
+                ) -> Self {
+                    Self {
+                        x,
+                        y,
+                        u,
+                        v,
+                        color,
+                        ..::core::default::Default::default()
+                    }
+                }
+
+                pub fn from_position_uv_color(
+                    x: $crate::define_vertex_layout!(@vertex $vertex),
+                    y: $crate::define_vertex_layout!(@vertex $vertex),
+                    z: $crate::define_vertex_layout!(@vertex $vertex),
+                    u: $crate::define_vertex_layout!(@texture $texture),
+                    v: $crate::define_vertex_layout!(@texture $texture),
+                    color: $crate::define_vertex_layout!(@color $color),
+                ) -> Self {
+                    Self {
+                        x,
+                        y,
+                        z,
+                        u,
+                        v,
+                        color,
+                        ..::core::default::Default::default()
+                    }
+                }
+            )*
         }
         impl $crate::vertex::Vertex for $name {
             fn vtype() -> ::psp::sys::VertexType {

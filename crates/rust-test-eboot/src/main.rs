@@ -42,18 +42,13 @@ fn psp_main() -> ! {
             h: FLAG_STRIP_HEIGHT as i32,
         };
         let base_idx = idx << 1;
-        vertices[base_idx] = Vertex {
-            x: rect.x as _,
-            y: rect.y as _,
-            color: Color32::from_rgb(color),
-            ..Default::default()
-        };
-        vertices[base_idx + 1] = Vertex {
-            x: (rect.x + rect.w) as _,
-            y: (rect.y + rect.h) as _,
-            color: Color32::from_rgb(color),
-            ..Default::default()
-        };
+        vertices[base_idx] =
+            Vertex::from_position2_color(rect.x as u16, rect.y as u16, Color32::from_rgb(color));
+        vertices[base_idx + 1] = Vertex::from_position2_color(
+            (rect.x + rect.w) as u16,
+            (rect.y + rect.h) as u16,
+            Color32::from_rgb(color),
+        );
     }
 
     let mut gfx = PspGfx::init();
