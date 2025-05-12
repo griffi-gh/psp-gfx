@@ -7,7 +7,10 @@ extern crate alloc;
 use core::mem::ManuallyDrop;
 use psp::{
     Align16, BUF_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
-    sys::{self, DisplayPixelFormat, GuPrimitive, GuState, TexturePixelFormat},
+    sys::{
+        self, DisplayPixelFormat, GuPrimitive, GuState, ShadingModel, TextureColorComponent,
+        TextureEffect, TexturePixelFormat,
+    },
     vram_alloc::get_vram_allocator,
 };
 
@@ -134,6 +137,24 @@ impl<'gfx> Frame<'gfx> {
             sys::sceGuClear(
                 sys::ClearBuffer::COLOR_BUFFER_BIT | sys::ClearBuffer::DEPTH_BUFFER_BIT,
             );
+        }
+    }
+
+    pub fn set_texture_function(
+        &self,
+        texture_effect: TextureEffect,
+        texture_color_component: TextureColorComponent,
+    ) {
+        // XXX: this affects context outside of current frame
+        unsafe {
+            sys::sceGuTexFunc(texture_effect, texture_color_component);
+        }
+    }
+
+    pub fn set_shading_model(&self, shading_model: ShadingModel) {
+        // XXX: this seemingly only affects the current frame
+        unsafe {
+            sys::sceGuShadeModel(shading_model);
         }
     }
 

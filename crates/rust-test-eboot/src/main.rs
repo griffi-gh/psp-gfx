@@ -69,10 +69,8 @@ fn psp_main() -> ! {
         let frame = gfx.start_frame();
         frame.clear_color_depth(Color32::BLACK, 0);
 
-        unsafe {
-            psp::sys::sceGuTexFunc(TextureEffect::Modulate, TextureColorComponent::Rgba);
-            psp::sys::sceGuShadeModel(psp::sys::ShadingModel::Smooth);
-        }
+        frame.set_texture_function(TextureEffect::Modulate, TextureColorComponent::Rgba);
+        frame.set_shading_model(psp::sys::ShadingModel::Smooth);
 
         let buf = frame.get_memory(&vertices);
         frame.draw_array(GuPrimitive::Sprites, &buf);
