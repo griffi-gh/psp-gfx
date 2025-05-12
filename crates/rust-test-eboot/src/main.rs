@@ -62,7 +62,5 @@ fn psp_main() -> ! {
 
         let buf = frame.get_memory(&vertices);
         frame.draw_array(GuPrimitive::Sprites, &buf);
-
-        frame.finish();
     }
 }
