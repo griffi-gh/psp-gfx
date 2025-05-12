@@ -257,10 +257,10 @@ macro_rules! define_vertex_layout {
     };
 }
 
-define_vertex_layout! {
-    Test {
-        texture: TEXTURE_16BIT,
-        vertex: VERTEX_16BIT,
-        transform: TRANSFORM_2D
-    }
-}
+// define_vertex_layout! {
+//     Test {
+//         texture: TEXTURE_16BIT,
+//         vertex: VERTEX_16BIT,
+//         transform: TRANSFORM_2D
+//     }
+// }
