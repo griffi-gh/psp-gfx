@@ -12,11 +12,12 @@ const FLAG_COLORS: &[u32] = &[0xE40303, 0xFF8C00, 0xFFED00, 0x008026, 0x004CFF, 
 const FLAG_STRIP_HEIGHT: u32 = SCREEN_HEIGHT / FLAG_COLORS.len() as u32;
 
 define_vertex_layout! {
-    Vertex,
-    texture = 16,
-    vertex = 16,
-    transform = D2,
-    color = 8888
+    Vertex {
+        texture: TEXTURE_16BIT,
+        vertex: VERTEX_16BIT,
+        transform: TRANSFORM_2D,
+        color: COLOR_8888,
+    }
 }
 
 fn psp_main() -> ! {

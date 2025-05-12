@@ -7,107 +7,121 @@ pub trait Vertex {
 #[macro_export]
 macro_rules! define_vertex_layout {
     (
-        auto,
-        texture = $tex_bits:literal,
-        vertex = $vtx_bits:literal,
-        transform = $transform:ident
-        $(, color = $color_fmt:tt)?
-        $(, normal = $normal_bits:literal)?
-        $(, weight = $weight_bits:literal)?
-        $(, index = $index_bits:literal)?
+        $name:ident {
+            texture: $texture:ident
+            , vertex: $vertex:ident
+            , transform: $transform:ident
+            $(, color: $color:ident)?
+            $(, normal: $normal:ident)?
+            $(, weight: $weight:ident)?
+            $(, index: $index:ident)?
+            $(,)?
+        } $(;)?
     ) => {
-        $crate::paste::paste! {
-            define_vertex_layout!(
-                [<VertexTex $tex_bits Vtx $vtx_bits $transform:upper
-                    $( C $color_fmt)? $( N $normal_bits)? $( W $weight_bits)? $( I $index_bits)? >],
-                texture = $tex_bits,
-                vertex = $vtx_bits,
-                transform = $transform
-                $(, color = $color_fmt)?
-                $(, normal = $normal_bits)?
-                $(, weight = $weight_bits)?
-                $(, index = $index_bits)?
-            );
+        #[repr(C)]
+        #[derive(::core::marker::Copy, ::core::clone::Clone, ::core::default::Default)]
+        struct $name {
+            pub u: $crate::define_vertex_layout!(@texture $texture),
+            pub v: $crate::define_vertex_layout!(@texture $texture),
+            $(
+                pub color: $crate::define_vertex_layout!(@color $color),
+            )?
+            $(
+                pub normal_x: $crate::define_vertex_layout!(@normal $normal),
+                pub normal_y: $crate::define_vertex_layout!(@normal $normal),
+                pub normal_z: $crate::define_vertex_layout!(@normal $normal),
+            )?
+            $(
+                pub weight: $crate::define_vertex_layout!(@weight $weight),
+            )?
+            $(
+                pub index: $crate::define_vertex_layout!(@index $index),
+            )?
+            pub x: define_vertex_layout!(@vertex $vertex),
+            pub y: define_vertex_layout!(@vertex $vertex),
+            pub z: define_vertex_layout!(@vertex $vertex),
         }
-    };
-
-    (
-        $name:ident,
-        texture = $tex_bits:literal,
-        vertex = $vtx_bits:literal,
-        transform = $transform:ident
-        $(, color = $color_fmt:tt)?
-        $(, normal = $normal_bits:literal)?
-        $(, weight = $weight_bits:literal)?
-        $(, index = $index_bits:literal)?
-    ) => {
-        $crate::paste::paste! {
-            #[repr(C)]
-            #[derive(::core::marker::Copy, ::core::clone::Clone, ::core::default::Default)]
-            struct $name {
-
-                // Texture
-                pub u: define_vertex_layout!(@type $tex_bits, float, unsigned),
-                pub v: define_vertex_layout!(@type $tex_bits, float, unsigned),
-
-                // Color
+        impl $crate::vertex::Vertex for $name {
+            fn vtype() -> ::psp::sys::VertexType {
+                ::psp::sys::VertexType::$texture
                 $(
-                    pub color: define_vertex_layout!(@color_type $color_fmt),
+                    | ::psp::sys::VertexType::$color
                 )?
-
-                // Normal
                 $(
-                    pub nx: define_vertex_layout!(@type $normal_bits, float, signed),
-                    pub ny: define_vertex_layout!(@type $normal_bits, float, signed),
-                    pub nz: define_vertex_layout!(@type $normal_bits, float, signed),
+                    | ::psp::sys::VertexType::$normal
                 )?
-
-                // Weights
                 $(
-                    pub weight: define_vertex_layout!(@type $weight_bits, float, unsigned),
+                    | ::psp::sys::VertexType::$weight
                 )?
-
-                // Index
                 $(
-                    pub index: define_vertex_layout!(@type $index_bits, int, unsigned),
+                    | ::psp::sys::VertexType::$index
                 )?
-
-                // Vertex
-                pub x: define_vertex_layout!(@type $vtx_bits, float, signed),
-                pub y: define_vertex_layout!(@type $vtx_bits, float, signed),
-                pub z: define_vertex_layout!(@type $vtx_bits, float, signed),
-            }
-
-            impl $crate::vertex::Vertex for $name {
-                fn vtype() -> ::psp::sys::VertexType {
-                    const __TRANSFORM_D2: ::psp::sys::VertexType = ::psp::sys::VertexType::TRANSFORM_2D;
-                    const __TRANSFORM_D3: ::psp::sys::VertexType = ::psp::sys::VertexType::TRANSFORM_3D;
-                    ::psp::sys::VertexType::[<TEXTURE_ $tex_bits BIT>]
-                        | ::psp::sys::VertexType::[<VERTEX_ $vtx_bits BIT>]
-                        | [<__TRANSFORM _ $transform:upper>]
-                        $( | ::psp::sys::VertexType::[<COLOR_ $color_fmt>] )?
-                        $( | ::psp::sys::VertexType::[<NORMAL_ $normal_bits BIT>] )?
-                        $( | ::psp::sys::VertexType::[<WEIGHT_ $weight_bits BIT>] )?
-                        $( | ::psp::sys::VertexType::[<INDEX_ $index_bits BIT>] )?
-                }
+                | ::psp::sys::VertexType::$vertex
+                | ::psp::sys::VertexType::$transform
             }
         }
     };
 
-    (@type 8, float, signed) => { i8 };
-    (@type 16, float, signed) => { i16 };
-    (@type 32, float, signed) => { f32 };
-    (@type 8, float, unsigned) => { u8 };
-    (@type 16, float, unsigned) => { u16 };
-    (@type 32, float, unsigned) => { f32 };
-    (@type 8, int, signed) => { i8 };
-    (@type 16, int, signed) => { i16 };
-    (@type 32, int, signed) => { i32 };
-    (@type 8, int, unsigned) => { u8 };
-    (@type 16, int, unsigned) => { u16 };
-    (@type 32, int, unsigned) => { u32 };
-    (@color_type 5650) => { u16 };
-    (@color_type 5551) => { u16 };
-    (@color_type 4444) => { u16 };
-    (@color_type 8888) => { $crate::color::Color32 };
+    (@texture TEXTURE_8BIT) => {
+        u8
+    };
+    (@texture TEXTURE_16BIT) => {
+        u16
+    };
+    (@texture TEXTURE_32BITF) => {
+        f32
+    };
+    (@color COLOR_5650) => {
+        u16
+    };
+    (@color COLOR_5551) => {
+        u16
+    };
+    (@color COLOR_4444) => {
+        u16
+    };
+    (@color COLOR_8888) => {
+        $crate::color::Color32
+    };
+    (@normal NORMAL_8BIT) => {
+        u8
+    };
+    (@normal NORMAL_16BIT) => {
+        u16
+    };
+    (@normal NORMAL_32BITF) => {
+        f32
+    };
+    (@vertex VERTEX_8BIT) => {
+        u8
+    };
+    (@vertex VERTEX_16BIT) => {
+        u16
+    };
+    (@vertex VERTEX_32BITF) => {
+        f32
+    };
+    (@weight WEIGHT_8BIT) => {
+        u8
+    };
+    (@weight WEIGHT_16BIT) => {
+        u16
+    };
+    (@weight WEIGHT_32BITF) => {
+        f32
+    };
+    (@index INDEX_8BIT) => {
+        u8
+    };
+    (@index INDEX_16BIT) => {
+        u16
+    };
 }
+
+// define_vertex_layout! {
+//     Test {
+//         texture: TEXTURE_16BIT,
+//         vertex: VERTEX_16BIT,
+//         transform: TRANSFORM_2D
+//     }
+// }

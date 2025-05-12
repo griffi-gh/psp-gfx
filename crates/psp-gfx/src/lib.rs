@@ -26,9 +26,6 @@ use index::IndexItem;
 use rect::Rect;
 use vertex::Vertex;
 
-// Re-export
-pub use paste;
-
 pub static mut BUFFER: Align16<[u32; 0x40000]> = Align16([0; 0x40000]);
 
 pub struct PspGfx {

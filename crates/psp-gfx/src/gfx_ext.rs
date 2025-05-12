@@ -11,7 +11,13 @@ impl<'gfx> GfxExt for Frame<'gfx> {
     ///
     /// To set the color use [`Frame::set_color`]
     fn gfx_rect(&self, rect: Rect) {
-        define_vertex_layout!(Vertex, texture = 16, vertex = 16, transform = D2);
+        define_vertex_layout! {
+            Vertex {
+                texture: TEXTURE_16BIT,
+                vertex: VERTEX_16BIT,
+                transform: TRANSFORM_2D,
+            }
+        };
         let vertex_buf = self.get_memory(&[
             Vertex {
                 x: rect.x as _,
