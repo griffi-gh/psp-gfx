@@ -11,11 +11,13 @@ pub unsafe trait Buffer {
 
     /// Get length of the buffer in elements
     fn len(&self) -> usize {
-        self.byte_size() / core::mem::size_of::<Self::Item>()
+        self.byte_size()
+            .checked_div(core::mem::size_of::<Self::Item>())
+            .unwrap_or_default()
     }
-    /// Check if the buffer is empty
+    /// Check if the buffer is empty (contains 0 items)
     fn is_empty(&self) -> bool {
-        self.byte_size() == 0
+        self.len() == 0
     }
 }
 
