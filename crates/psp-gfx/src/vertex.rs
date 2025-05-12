@@ -123,6 +123,7 @@ macro_rules! define_vertex_layout {
                     Self {
                         x,
                         y,
+                        color,
                         ..::core::default::Default::default()
                     }
                 }
@@ -137,6 +138,7 @@ macro_rules! define_vertex_layout {
                         x,
                         y,
                         z,
+                        color,
                         ..::core::default::Default::default()
                     }
                 }
