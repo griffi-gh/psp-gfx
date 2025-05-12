@@ -4,6 +4,7 @@ pub trait Vertex {
     fn vtype() -> VertexType;
 }
 
+// TODO support multiple weights/vertices (GU_WEIGHTS(n), GU_VERTICES(n))
 #[macro_export]
 macro_rules! define_vertex_layout {
     (
@@ -34,15 +35,16 @@ macro_rules! define_vertex_layout {
             $(
                 pub weight: $crate::define_vertex_layout!(@weight $weight),
             )?
-            $(
-                pub index: $crate::define_vertex_layout!(@index $index),
-            )?
             pub x: define_vertex_layout!(@vertex $vertex),
             pub y: define_vertex_layout!(@vertex $vertex),
             pub z: define_vertex_layout!(@vertex $vertex),
         }
         impl $crate::vertex::Vertex for $name {
             fn vtype() -> ::psp::sys::VertexType {
+                $(
+                    ::psp::sys::VertexType::$weight |
+                    ::psp::sys::VertexType::WEIGHTS1 |
+                )?
                 ::psp::sys::VertexType::$texture
                 $(
                     | ::psp::sys::VertexType::$color
@@ -51,12 +53,10 @@ macro_rules! define_vertex_layout {
                     | ::psp::sys::VertexType::$normal
                 )?
                 $(
-                    | ::psp::sys::VertexType::$weight
-                )?
-                $(
                     | ::psp::sys::VertexType::$index
                 )?
                 | ::psp::sys::VertexType::$vertex
+                | ::psp::sys::VertexType::VERTICES1
                 | ::psp::sys::VertexType::$transform
             }
         }
